@@ -104,3 +104,38 @@ class SphericalRefraction(OpticalElement):
         
             #append into ray list
             ray.append(surface_normal,refracted_ray)
+
+def refraction(incident_ray,surface_normal,n1,n2):
+    #return the refrected ray in unit vector form
+    if n2/n1 <= 1:
+        return None
+    else: 
+        mu = n1/n2
+        parallel = (np.sqrt((1 - (mu**2)) * (1 - ((np.dot(incident_ray,surface_normal))**2))))\
+                 * surface_normal
+        perpendicular = mu * (incident_ray - ((np.dot(incident_ray, surface_normal)) * surface_normal) )
+        return (parallel + perpendicular) / np.linalg.norm(parallel + perpendicular)
+
+class OutputPlane(OpticalElement):
+    """
+    class to represent output plane
+    """
+    
+    def __init__(self,r_0,normal):
+        self.__r_0 = r_0
+        self.__normal = normal
+        
+    def intercept(self,ray):
+        #return intersection point of ray with plane
+        #direction = ray.k()
+        #direction_hat = direction / np.linalg.norm(direction)
+        
+        numerator = np.dot((self.__r_0 - ray.p()),self.__normal)
+        denominator = np.dot(ray.k(),self.__normal)
+        
+        d = numerator / denominator
+        intercept = ray.p() + (d * ray.k())
+        return intercept
+    
+    def propagate_ray(self,ray):
+        ray.append(self.intercept(ray),ray.k())
